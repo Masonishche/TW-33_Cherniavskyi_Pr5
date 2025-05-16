@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genetic Algorithm Optimization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        label, input {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: #ffffff;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Genetic Algorithm Optimization</h1>
+    <form id="gaForm">
+        <label for="problemSize">Problem Size:</label>
+        <input type="number" id="problemSize" required>
+        <label for="populationSize">Population Size:</label>
+        <input type="number" id="populationSize" required>
+        <label for="numIterations">Number of Iterations:</label>
+        <input type="number" id="numIterations" required>
+        <button type="button" onclick="runGeneticAlgorithm()">Run Genetic Algorithm</button>
+    </form>
+    <div id="errorMessage" style="color: red; margin-top: 10px;"></div>
+
+    <div id="result"></div>
+
+    <script>
+        async function runGeneticAlgorithm() {
+            const problemSize = document.getElementById('problemSize').value;
+            const populationSize = document.getElementById('populationSize').value;
+            const numIterations = document.getElementById('numIterations').value;
+            
+            if (problemSize <= 0 || populationSize <= 0 || numIterations <= 0) {
+                document.getElementById('errorMessage').textContent = "Values couldn't be 0 or negative.";
+                return;
+            }
+
+            document.getElementById('errorMessage').textContent = "";
+            
+            const response = await fetch('http://localhost:8000/run_genetic_algorithm/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    problem_size: parseInt(problemSize),
+                    population_size: parseInt(populationSize),
+                    num_iterations: parseInt(numIterations)
+                })
+            });
+
+            
+
+            const data = await response.json();
+            displayResult(data);
+        }
+
+        function displayResult(data) {
+            const resultElement = document.getElementById('result');
+            resultElement.innerHTML = '';
+
+            const table = document.createElement('table');
+            const headers = ['Gene', 'Fitness'];
+            const headerRow = table.createTHead().insertRow();
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+
+            const row = table.insertRow();
+            const geneCell = row.insertCell();
+            geneCell.textContent = data.best_solution_genes.map(gene => gene.toFixed(4)).join(', ');
+            const fitnessCell = row.insertCell();
+            fitnessCell.textContent = data.fitness.toFixed(4);
+
+            resultElement.appendChild(table);
+        }
+    </script>
+</body>
+</html>
